@@ -34,7 +34,18 @@ function makeEpisodeItem(episode) {
   divEpisode.appendChild(h1Episode);
   divEpisode.appendChild(imgEpisode);
 
-  h1Episode.innerText = episode.name;
+  h1Episode.innerText =
+    episode.name +
+    " - " +
+    "S" +
+    formatNumber(episode.season) +
+    "E" +
+    formatNumber(episode.number);
+
   imgEpisode.src = episode.image.medium;
   divEpisode.insertAdjacentHTML(`beforeend`, episode.summary);
+}
+
+function formatNumber(num) {
+  return num < 10 ? `0${num}` : num;
 }
