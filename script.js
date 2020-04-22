@@ -27,10 +27,14 @@ function makeEpisodeItem(episode) {
   let divEpisode = document.createElement("div"); //make div for each episode
   mainRoot.appendChild(divEpisode);
   divEpisode.className = "episode";
+
   let h1Episode = document.createElement("h1"); // make it for episode title
   let imgEpisode = document.createElement("img");
 
   divEpisode.appendChild(h1Episode);
   divEpisode.appendChild(imgEpisode);
+
   h1Episode.innerText = episode.name;
+  imgEpisode.src = episode.image.medium;
+  divEpisode.insertAdjacentHTML(`beforeend`, episode.summary);
 }
