@@ -1,27 +1,48 @@
-//You can edit ALL of the code here
-
+//Get the common data
 const allEpisodes = getAllEpisodes();
+const numAllepisodes = allEpisodes.length;
 const mainRoot = document.getElementById("root");
+const numResults = document.getElementById("num_results");
 
-function setup() {
-  //const allEpisodes = getAllEpisodes();
-  // makePageForEpisodes(allEpisodes);
-  //const oneEpisode = getOneEpisode();
-  // console.log(oneEpisode);
-}
-
-function makePageForEpisodes(episodeList) {
-  const rootElem = document.getElementById("root");
-  rootElem.textContent = `Got ${episodeList.length} episode(s)`;
-}
-
-//window.onload = setup();
-
-//console.log(allEpisodes);
-
-Object.entries(allEpisodes).forEach(function ([index, e]) {
-  makeEpisodeItem(e);
+// Add event listeners for search box
+const inputBox = document.querySelector("#search_keyword");
+inputBox.addEventListener("input", (event) => {
+  console.log("search keyword : " + inputBox.value);
+  let keyword = inputBox.value.trim();
+  inputBox.value.trim() == ""
+    ? makePageforAllepisodes(allEpisodes)
+    : searchData(keyword);
 });
+
+function searchData(keyword) {
+  let searchResult = allEpisodes.filter((episode) => {
+    return (
+      episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
+      episode.summary.toLowerCase().includes(keyword.toLowerCase())
+    );
+  });
+
+  makePageforSearchedepisodes(searchResult);
+}
+
+function bindData(allEpisodes) {
+  Object.entries(allEpisodes).forEach(function ([index, e]) {
+    makeEpisodeItem(e);
+  });
+}
+
+function makePageforAllepisodes(allEpisodes) {
+  numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
+  mainRoot.innerHTML = "";
+  bindData(allEpisodes);
+}
+
+function makePageforSearchedepisodes(allEpisodes) {
+  numResults.innerText =
+    "Displaying " + allEpisodes.length + " / " + numAllepisodes + " episode(s)";
+  mainRoot.innerHTML = "";
+  bindData(allEpisodes);
+}
 
 function makeEpisodeItem(episode) {
   let divEpisode = document.createElement("div"); //make div for each episode
@@ -49,3 +70,10 @@ function makeEpisodeItem(episode) {
 function formatNumber(num) {
   return num < 10 ? `0${num}` : num;
 }
+
+function setup() {
+  //const allEpisodes = getAllEpisodes();
+  makePageforAllepisodes(allEpisodes);
+}
+
+window.onload = setup();
