@@ -1,17 +1,29 @@
 //Get the common data
 const allEpisodes = getAllEpisodes();
+
+//total number of episodes
 const numAllepisodes = allEpisodes.length;
+
+// ---  Get Elements and Make DOM Objects ----
 const mainRoot = document.getElementById("root");
 const numResults = document.getElementById("num_results");
+const drdEpisodes = document.getElementById("drdEpisodes");
 
+// ---  EVENT LISTENERS ----
 // Add event listeners for search box
 const inputBox = document.querySelector("#search_keyword");
 inputBox.addEventListener("input", (event) => {
   console.log("search keyword : " + inputBox.value);
   let keyword = inputBox.value.trim();
+  drdEpisodes.getElementsByTagName("option")[0].selected = "selected";
   inputBox.value.trim() == ""
     ? makePageforAllepisodes(allEpisodes)
     : searchData(keyword);
+});
+
+// Add event listeners for Episodes Select Box
+drdEpisodes.addEventListener("change", (event) => {
+  findEpisodeById(drdEpisodes.value);
 });
 
 function searchData(keyword) {
@@ -21,13 +33,13 @@ function searchData(keyword) {
       episode.summary.toLowerCase().includes(keyword.toLowerCase())
     );
   });
-
   makePageforSearchedepisodes(searchResult);
 }
 
 function bindData(allEpisodes) {
   Object.entries(allEpisodes).forEach(function ([index, e]) {
     makeEpisodeItem(e);
+    makeEpisodesSelect(e);
   });
 }
 
@@ -56,19 +68,39 @@ function makeEpisodeItem(episode) {
   divEpisode.appendChild(imgEpisode);
 
   h1Episode.innerText =
-    episode.name +
-    " - " +
-    "S" +
-    formatNumber(episode.season) +
-    "E" +
-    formatNumber(episode.number);
-
+    episode.name + " - " + episodeFormater(episode.season, episode.number);
   imgEpisode.src = episode.image.medium;
   divEpisode.insertAdjacentHTML(`beforeend`, episode.summary);
 }
 
-function formatNumber(num) {
-  return num < 10 ? `0${num}` : num;
+function episodeFormater(epSeason, epNumber) {
+  return `S${formatNumber(epSeason)}E${formatNumber(epNumber)}`;
+
+  function formatNumber(num) {
+    return num < 10 ? `0${num}` : num;
+  }
+}
+
+function makeEpisodesSelect(episode) {
+  var selectvalue =
+    episodeFormater(episode.season, episode.number) + " - " + episode.name;
+  var opt = document.createElement("option");
+  opt.value = episode.id;
+  opt.text = selectvalue;
+  drdEpisodes.appendChild(opt);
+}
+
+function findEpisodeById(id) {
+  if (id == 0) {
+    makePageforAllepisodes(allEpisodes);
+  } else {
+    console.log(id);
+    makePageforSearchedepisodes(
+      allEpisodes.filter((episode) => {
+        return episode.id == id;
+      })
+    );
+  }
 }
 
 function setup() {

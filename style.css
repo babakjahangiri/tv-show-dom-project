@@ -4,6 +4,20 @@ body {
   margin: 0 auto;
   background-color: whitesmoke;
 }
+header {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+}
+
+@media (min-width: 876px) {
+  header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+}
 
 main {
   display: grid;
@@ -38,16 +52,48 @@ main {
   margin-left: 15px;
 }
 
+.drdEpisodes {
+  background-color: #fff;
+  width: 300px;
+  height: 35px;
+  font-size: 1.125em;
+  margin: 10px;
+  padding: 5px;
+}
+
 .search {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-wrap: wrap;
   background-color: whitesmoke;
   padding: 15px;
 }
 
 .search input {
   width: 300px;
-  height: 30px;
-  font-size: 1.24em;
+  height: 25px;
+  font-size: 1.125em;
   margin: 10px;
   padding: 5px;
+}
+
+.search span {
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+}
+
+input:focus {
+  outline: thin #000 inset;
+}
+
+select:focus {
+  outline: thin #000 inset;
+}
+
+@media (min-width: 876px) {
+  .search {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
 }
