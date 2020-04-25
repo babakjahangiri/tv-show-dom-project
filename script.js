@@ -94,7 +94,6 @@ function findEpisodeById(id) {
   if (id == 0) {
     makePageforAllepisodes(allEpisodes);
   } else {
-    console.log(id);
     makePageforSearchedepisodes(
       allEpisodes.filter((episode) => {
         return episode.id == id;
