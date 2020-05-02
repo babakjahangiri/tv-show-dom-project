@@ -1,8 +1,8 @@
 //Get the common data
-const allEpisodes = getAllEpisodes();
-
+let allEpisodes;
+const ApiUrl = "https://api.tvmaze.com/shows";
 //total number of episodes
-const numAllepisodes = allEpisodes.length;
+let numAllepisodes;
 
 // ---  Get Elements and Make DOM Objects ----
 const mainRoot = document.getElementById("root");
@@ -103,8 +103,28 @@ function findEpisodeById(id) {
 }
 
 function setup() {
-  //const allEpisodes = getAllEpisodes();
-  makePageforAllepisodes(allEpisodes);
+  fetchData().then((data) => {
+    allEpisodes = data;
+    numAllepisodes = data.length;
+    // console.log(numAllepisodes);
+    makePageforAllepisodes(allEpisodes);
+  });
 }
 
 window.onload = setup();
+
+function fetchData() {
+  return new Promise((resolve, reject) => {
+    fetch(ApiUrl)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          console.error("unable to get the Api data");
+        }
+      })
+      .then(function (apiData) {
+        resolve(apiData);
+      });
+  });
+}
