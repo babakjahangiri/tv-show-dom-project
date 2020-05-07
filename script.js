@@ -1,6 +1,7 @@
 //Get the common data
 let allEpisodes;
-const ApiUrl = "https://api.tvmaze.com/shows";
+let allShows;
+
 //total number of episodes
 let numAllepisodes;
 
@@ -21,11 +22,72 @@ inputBox.addEventListener("input", (event) => {
     : searchData(keyword);
 });
 
+// Add event listeners for Shows Select Box
+drdShows.addEventListener("change", (event) => {
+  findEpisodeByShowId(drdShows.value);
+});
+
 // Add event listeners for Episodes Select Box
 drdEpisodes.addEventListener("change", (event) => {
   findEpisodeById(drdEpisodes.value);
 });
+//-------------------------------
 
+//-------- HEADER MAKERS --------------
+
+//--------------------------------------
+
+// Add to DropDown Lists ---------------
+
+function fill_ddList_Shows(showsdata) {
+  Object.entries(showsdata).forEach(function ([index, shows]) {
+    var opt = document.createElement("option");
+    opt.value = shows.id;
+    opt.text = shows.name;
+    drdShows.appendChild(opt);
+  });
+  drdShows.getElementsByTagName("option")[0].selected = "selected";
+}
+
+function fill_ddList_Episodes(showId) {
+  reset_drdEpisodes();
+  getAllEpisodesAsync(showId).then((data) =>
+    Object.entries(data).forEach(function ([index, e]) {
+      makeEpisodesSelect(e);
+    })
+  );
+
+  //- makeEpisodesSelect(data)
+}
+
+function reset_drdEpisodes() {
+  drdEpisodes.innerText = "";
+  var opt = document.createElement("option");
+  opt.value = 0;
+  opt.text = "-- ALL EPISODES --";
+  drdEpisodes.appendChild(opt);
+  drdEpisodes.getElementsByTagName("option")[0].selected = "selected";
+}
+
+function makeEpisodesSelect(episode) {
+  var selectvalue =
+    episodeFormater(episode.season, episode.number) + " - " + episode.name;
+  var opt = document.createElement("option");
+  opt.value = episode.id;
+  opt.text = selectvalue;
+  drdEpisodes.appendChild(opt);
+}
+
+//------------------------------
+
+//---- PAGE Makers ---------------
+function make_ShowsGrid(showsData) {
+  Object.entries(allShows).forEach(function ([index, e]) {
+    makeItem_Shows(e);
+  });
+}
+
+//---------------------------------
 function searchData(keyword) {
   let searchResult = allEpisodes.filter((episode) => {
     return (
@@ -36,14 +98,14 @@ function searchData(keyword) {
   makePageforSearchedepisodes(searchResult);
 }
 
-function bindData(allEpisodes) {
-  Object.entries(allEpisodes).forEach(function ([index, e]) {
+function bindData(dataSource) {
+  Object.entries(dataSource).forEach(function ([index, e]) {
     makeEpisodeItem(e);
-    makeEpisodesSelect(e);
+    //makeEpisodesSelect(e);
   });
 }
 
-function makePageforAllepisodes(allEpisodes) {
+function makeHeaderNav(showsData, episodesData) {
   numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
   mainRoot.innerHTML = "";
   bindData(allEpisodes);
@@ -54,6 +116,28 @@ function makePageforSearchedepisodes(allEpisodes) {
     "Displaying " + allEpisodes.length + " / " + numAllepisodes + " episode(s)";
   mainRoot.innerHTML = "";
   bindData(allEpisodes);
+}
+
+function makePageforAllepisodes(allEpisodes) {
+  numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
+  mainRoot.innerHTML = "";
+  bindData(allEpisodes);
+}
+
+function makeItem_Shows(shows) {
+  let divShowItem = document.createElement("div"); //make div for each show
+  mainRoot.appendChild(divShowItem);
+  divShowItem.className = "shows";
+
+  let h1Shows = document.createElement("h1"); // make it for episode title
+  let imgShows = document.createElement("img");
+
+  divShowItem.appendChild(h1Shows);
+  divShowItem.appendChild(imgShows);
+
+  h1Shows.innerText = shows.name;
+  imgShows.src = shows.image.medium;
+  divShowItem.insertAdjacentHTML(`beforeend`, shows.summary);
 }
 
 function makeEpisodeItem(episode) {
@@ -69,8 +153,18 @@ function makeEpisodeItem(episode) {
 
   h1Episode.innerText =
     episode.name + " - " + episodeFormater(episode.season, episode.number);
-  imgEpisode.src = episode.image.medium;
-  divEpisode.insertAdjacentHTML(`beforeend`, episode.summary);
+
+  var mediumSrc = "images/no-image.jpg";
+  episode.image == null ? mediumSrc : (mediumSrc = episode.image.medium);
+
+  imgEpisode.src = mediumSrc;
+
+  var summaryAlert = "<p> No summary data is available for this episode <p>";
+
+  divEpisode.insertAdjacentHTML(
+    `beforeend`,
+    episode.summary == null ? summaryAlert : episode.summary
+  );
 }
 
 function episodeFormater(epSeason, epNumber) {
@@ -81,13 +175,15 @@ function episodeFormater(epSeason, epNumber) {
   }
 }
 
-function makeEpisodesSelect(episode) {
-  var selectvalue =
-    episodeFormater(episode.season, episode.number) + " - " + episode.name;
-  var opt = document.createElement("option");
-  opt.value = episode.id;
-  opt.text = selectvalue;
-  drdEpisodes.appendChild(opt);
+function findEpisodeByShowId(id) {
+  if (id != 0) {
+    fetchEpisodes(id);
+    fill_ddList_Episodes(id);
+  } else {
+    mainRoot.innerHTML = "";
+    reset_drdEpisodes();
+    make_ShowsGrid(getAllShows());
+  }
 }
 
 function findEpisodeById(id) {
@@ -103,17 +199,47 @@ function findEpisodeById(id) {
 }
 
 function setup() {
-  fetchData().then((data) => {
-    allEpisodes = data;
-    numAllepisodes = data.length;
-    // console.log(numAllepisodes);
-    makePageforAllepisodes(allEpisodes);
-  });
+  // fetchShows().then((show) => {
+  //   allEpisodes = show;
+  //   numAllepisodes = show.length;
+  //   // console.log(numAllepisodes);
+  //   makePageforAllepisodes(allEpisodes);
+  // });
+  fetchShows();
 }
 
 window.onload = setup();
 
-function fetchData() {
+async function getAllEpisodesAsync(showId) {
+  return await fetchData(
+    "https://api.tvmaze.com/shows/" + showId + "/episodes"
+  );
+}
+
+//------------------ Fetches ----------------------
+function fetchEpisodes(showId) {
+  fetchData("https://api.tvmaze.com/shows/" + showId + "/episodes").then(
+    (episodesData) => {
+      allEpisodes = episodesData;
+      numAllepisodes = episodesData.length;
+      // console.log(numAllepisodes);
+      makePageforAllepisodes(allEpisodes);
+    }
+  );
+}
+function fetchShows() {
+  //fetchData("https://api.tvmaze.com/shows").then((showData) => {
+  // allEpisodes = showData;
+  //  console.log(showData);
+  // makePageforAllepisodes(allEpisodes);
+  //});
+  allShows = getAllShows();
+
+  fill_ddList_Shows(allShows);
+  make_ShowsGrid(allShows);
+}
+
+function fetchData(ApiUrl) {
   return new Promise((resolve, reject) => {
     fetch(ApiUrl)
       .then((response) => {
