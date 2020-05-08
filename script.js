@@ -1,7 +1,7 @@
 //Get the common data
 let allEpisodes;
 let allShows;
-
+let currentShowId;
 //total number of episodes
 let numAllepisodes;
 
@@ -17,13 +17,12 @@ inputBox.addEventListener("input", (event) => {
   console.log("search keyword : " + inputBox.value);
   let keyword = inputBox.value.trim();
   drdEpisodes.getElementsByTagName("option")[0].selected = "selected";
-  inputBox.value.trim() == ""
-    ? makePageforAllepisodes(allEpisodes)
-    : searchData(keyword);
+  inputBox.value.trim() == "" ? makePageforEpisodes() : searchData(keyword);
 });
 
 // Add event listeners for Shows Select Box
 drdShows.addEventListener("change", (event) => {
+  currentShowId = drdShows.value;
   findEpisodeByShowId(drdShows.value);
 });
 
@@ -51,9 +50,13 @@ function fill_ddList_Shows(showsdata) {
 
 function fill_ddList_Episodes(showId) {
   reset_drdEpisodes();
-  getAllEpisodesAsync(showId).then((data) =>
+  getEpisodesAsync(showId).then((data) =>
     Object.entries(data).forEach(function ([index, e]) {
-      makeEpisodesSelect(e);
+      var selectedValue = episodeFormatter(e.season, e.number) + " - " + e.name;
+      var opt = document.createElement("option");
+      opt.value = e.id;
+      opt.text = selectedValue;
+      drdEpisodes.appendChild(opt);
     })
   );
 
@@ -71,7 +74,7 @@ function reset_drdEpisodes() {
 
 function makeEpisodesSelect(episode) {
   var selectvalue =
-    episodeFormater(episode.season, episode.number) + " - " + episode.name;
+    episodeFormatter(episode.season, episode.number) + " - " + episode.name;
   var opt = document.createElement("option");
   opt.value = episode.id;
   opt.text = selectvalue;
@@ -89,13 +92,15 @@ function make_ShowsGrid(showsData) {
 
 //---------------------------------
 function searchData(keyword) {
-  let searchResult = allEpisodes.filter((episode) => {
-    return (
-      episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
-      episode.summary.toLowerCase().includes(keyword.toLowerCase())
-    );
+  getEpisodesAsync(currentShowId).then((e) => {
+    let searchResult = e.filter((episode) => {
+      return (
+        episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
+        episode.summary.toLowerCase().includes(keyword.toLowerCase())
+      );
+    });
+    makePageforSearchedepisodes(searchResult);
   });
-  makePageforSearchedepisodes(searchResult);
 }
 
 function bindData(dataSource) {
@@ -116,6 +121,14 @@ function makePageforSearchedepisodes(allEpisodes) {
     "Displaying " + allEpisodes.length + " / " + numAllepisodes + " episode(s)";
   mainRoot.innerHTML = "";
   bindData(allEpisodes);
+}
+
+function makePageforEpisodes() {
+  getEpisodesAsync(currentShowId).then((data) => {
+    numResults.innerText = `Displaying ${data.length} episode(s)`;
+    mainRoot.innerHTML = "";
+    bindData(data);
+  });
 }
 
 function makePageforAllepisodes(allEpisodes) {
@@ -152,7 +165,7 @@ function makeEpisodeItem(episode) {
   divEpisode.appendChild(imgEpisode);
 
   h1Episode.innerText =
-    episode.name + " - " + episodeFormater(episode.season, episode.number);
+    episode.name + " - " + episodeFormatter(episode.season, episode.number);
 
   var mediumSrc = "images/no-image.jpg";
   episode.image == null ? mediumSrc : (mediumSrc = episode.image.medium);
@@ -167,7 +180,7 @@ function makeEpisodeItem(episode) {
   );
 }
 
-function episodeFormater(epSeason, epNumber) {
+function episodeFormatter(epSeason, epNumber) {
   return `S${formatNumber(epSeason)}E${formatNumber(epNumber)}`;
 
   function formatNumber(num) {
@@ -175,10 +188,13 @@ function episodeFormater(epSeason, epNumber) {
   }
 }
 
-function findEpisodeByShowId(id) {
-  if (id != 0) {
-    fetchEpisodes(id);
-    fill_ddList_Episodes(id);
+function findEpisodeByShowId(showId) {
+  if (showId != 0) {
+    getEpisodesAsync(showId).then((data) => {
+      numAllepisodes = data.length;
+      makePageforAllepisodes(data);
+    });
+    fill_ddList_Episodes(showId);
   } else {
     mainRoot.innerHTML = "";
     reset_drdEpisodes();
@@ -187,37 +203,33 @@ function findEpisodeByShowId(id) {
 }
 
 function findEpisodeById(id) {
-  if (id == 0) {
-    makePageforAllepisodes(allEpisodes);
-  } else {
-    makePageforSearchedepisodes(
-      allEpisodes.filter((episode) => {
-        return episode.id == id;
-      })
-    );
-  }
+  getEpisodesAsync(currentShowId).then((data) => {
+    if (id == 0) {
+      makePageforAllepisodes(data);
+    } else {
+      makePageforSearchedepisodes(
+        data.filter((episode) => {
+          return episode.id == id;
+        })
+      );
+    }
+  });
 }
 
 function setup() {
-  // fetchShows().then((show) => {
-  //   allEpisodes = show;
-  //   numAllepisodes = show.length;
-  //   // console.log(numAllepisodes);
-  //   makePageforAllepisodes(allEpisodes);
-  // });
   fetchShows();
 }
 
 window.onload = setup();
 
-async function getAllEpisodesAsync(showId) {
+async function getEpisodesAsync(showId) {
   return await fetchData(
     "https://api.tvmaze.com/shows/" + showId + "/episodes"
   );
 }
 
 //------------------ Fetches ----------------------
-function fetchEpisodes(showId) {
+function fetchEpisodes1(showId) {
   fetchData("https://api.tvmaze.com/shows/" + showId + "/episodes").then(
     (episodesData) => {
       allEpisodes = episodesData;
@@ -228,13 +240,9 @@ function fetchEpisodes(showId) {
   );
 }
 function fetchShows() {
-  //fetchData("https://api.tvmaze.com/shows").then((showData) => {
-  // allEpisodes = showData;
-  //  console.log(showData);
-  // makePageforAllepisodes(allEpisodes);
-  //});
+  //fetchData("https://api.tvmaze.com/shows")
   allShows = getAllShows();
-
+  currentShowId = 0;
   fill_ddList_Shows(allShows);
   make_ShowsGrid(allShows);
 }
