@@ -17,7 +17,8 @@ inputBox.addEventListener("input", (event) => {
   console.log("search keyword : " + inputBox.value);
   let keyword = inputBox.value.trim();
   drdEpisodes.getElementsByTagName("option")[0].selected = "selected";
-  inputBox.value.trim() == "" ? makePageforEpisodes() : searchData(keyword);
+  //inputBox.value.trim() == "" ? makePageforEpisodes() :
+  searchData(keyword);
 });
 
 // Add event listeners for Shows Select Box
@@ -92,15 +93,17 @@ function make_ShowsGrid(showsData) {
 
 //---------------------------------
 function searchData(keyword) {
-  getEpisodesAsync(currentShowId).then((e) => {
-    let searchResult = e.filter((episode) => {
-      return (
-        episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
-        episode.summary.toLowerCase().includes(keyword.toLowerCase())
-      );
+  if (currentShowId != 0) {
+    getEpisodesAsync(currentShowId).then((e) => {
+      let searchResult = e.filter((episode) => {
+        return (
+          episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
+          episode.summary.toLowerCase().includes(keyword.toLowerCase())
+        );
+      });
+      makePageforSearchedepisodes(searchResult);
     });
-    makePageforSearchedepisodes(searchResult);
-  });
+  }
 }
 
 function bindData(dataSource) {
