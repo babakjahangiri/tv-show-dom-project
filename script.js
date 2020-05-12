@@ -51,7 +51,7 @@ function fill_ddList_Shows(showsdata) {
 
 function fill_ddList_Episodes(showId) {
   reset_drdEpisodes();
-  showId.then((data) =>
+  getEpisodesAsync(showId).then((data) =>
     Object.entries(data).forEach(function ([index, e]) {
       var selectedValue = episodeFormatter(e.season, e.number) + " - " + e.name;
       var opt = document.createElement("option");
@@ -94,13 +94,14 @@ function make_ShowsGrid(showsData) {
 //---------------------------------
 function searchData(keyword) {
   if (currentShowId != 0) {
-    currentShowId.then((e) => {
+    getEpisodesAsync(currentShowId).then((e) => {
       let searchResult = e.filter((episode) => {
         return (
           episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
           episode.summary.toLowerCase().includes(keyword.toLowerCase())
         );
       });
+      console.log("104 : " + keyword);
       makePageforSearchedepisodes(searchResult);
     });
   }
@@ -115,28 +116,28 @@ function bindData(dataSource) {
 
 function makeHeaderNav(showsData, episodesData) {
   numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
-  mainRoot.textContent = "";
+  mainRoot.innerHTML = "";
   bindData(allEpisodes);
 }
 
 function makePageforSearchedepisodes(allEpisodes) {
   numResults.innerText =
     "Displaying " + allEpisodes.length + " / " + numAllepisodes + " episode(s)";
-  mainRoot.textContent = "";
+  mainRoot.innerHTML = "";
   bindData(allEpisodes);
 }
 
 function makePageforEpisodes() {
   currentShowId.then((data) => {
     numResults.innerText = `Displaying ${data.length} episode(s)`;
-    mainRoot.textContent = "";
+    mainRoot.innerHTML = "";
     bindData(data);
   });
 }
 
 function makePageforAllepisodes(allEpisodes) {
   numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
-  mainRoot.textContent = "";
+  mainRoot.innerHTML = "";
   bindData(allEpisodes);
 }
 
@@ -199,10 +200,12 @@ function findEpisodeByShowId(showId) {
     });
     fill_ddList_Episodes(showId);
   } else {
-    mainRoot.textContent = "";
+    mainRoot.innerHTML = "";
     reset_drdEpisodes();
     make_ShowsGrid(getAllShows());
   }
+
+  console.log(showId);
 }
 
 function findEpisodeById(id) {
