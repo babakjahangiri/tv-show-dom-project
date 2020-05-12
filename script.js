@@ -51,7 +51,7 @@ function fill_ddList_Shows(showsdata) {
 
 function fill_ddList_Episodes(showId) {
   reset_drdEpisodes();
-  getEpisodesAsync(showId).then((data) =>
+  showId.then((data) =>
     Object.entries(data).forEach(function ([index, e]) {
       var selectedValue = episodeFormatter(e.season, e.number) + " - " + e.name;
       var opt = document.createElement("option");
@@ -94,7 +94,7 @@ function make_ShowsGrid(showsData) {
 //---------------------------------
 function searchData(keyword) {
   if (currentShowId != 0) {
-    getEpisodesAsync(currentShowId).then((e) => {
+    currentShowId.then((e) => {
       let searchResult = e.filter((episode) => {
         return (
           episode.name.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -115,28 +115,28 @@ function bindData(dataSource) {
 
 function makeHeaderNav(showsData, episodesData) {
   numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
-  mainRoot.innerHTML = "";
+  mainRoot.textContent = "";
   bindData(allEpisodes);
 }
 
 function makePageforSearchedepisodes(allEpisodes) {
   numResults.innerText =
     "Displaying " + allEpisodes.length + " / " + numAllepisodes + " episode(s)";
-  mainRoot.innerHTML = "";
+  mainRoot.textContent = "";
   bindData(allEpisodes);
 }
 
 function makePageforEpisodes() {
-  getEpisodesAsync(currentShowId).then((data) => {
+  currentShowId.then((data) => {
     numResults.innerText = `Displaying ${data.length} episode(s)`;
-    mainRoot.innerHTML = "";
+    mainRoot.textContent = "";
     bindData(data);
   });
 }
 
 function makePageforAllepisodes(allEpisodes) {
   numResults.innerText = `Displaying ${numAllepisodes} episode(s)`;
-  mainRoot.innerHTML = "";
+  mainRoot.textContent = "";
   bindData(allEpisodes);
 }
 
@@ -199,7 +199,7 @@ function findEpisodeByShowId(showId) {
     });
     fill_ddList_Episodes(showId);
   } else {
-    mainRoot.innerHTML = "";
+    mainRoot.textContent = "";
     reset_drdEpisodes();
     make_ShowsGrid(getAllShows());
   }
@@ -242,6 +242,7 @@ function fetchEpisodes1(showId) {
     }
   );
 }
+
 function fetchShows() {
   //fetchData("https://api.tvmaze.com/shows")
   allShows = getAllShows();
